@@ -9,7 +9,7 @@ type URLShortener struct {
 	URL string
 }
 
-func (shortener URLShortener) Id() string {
+func (shortener URLShortener) ID() string {
 	randomID := rand.Intn((99999 - 10000) + 10000)
 
 	return strconv.Itoa(randomID)

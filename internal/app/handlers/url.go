@@ -26,7 +26,7 @@ func CreateShortURL(w http.ResponseWriter, r *http.Request) {
 
 		urlShortener := app.URLShortener{URL: url}
 
-		shortURLID := urlShortener.Id()
+		shortURLID := urlShortener.ID()
 
 		urlsMap[shortURLID] = url
 
