@@ -26,16 +26,16 @@ func CreateShortURL(w http.ResponseWriter, r *http.Request) {
 
 		urlShortener := app.URLShortener{URL: url}
 
-		shortUrlId := urlShortener.Id()
+		shortURLID := urlShortener.Id()
 
-		urlsMap[shortUrlId] = url
+		urlsMap[shortURLID] = url
 
 		w.WriteHeader(http.StatusCreated)
 
-		w.Write([]byte("http://localhost:8080/" + shortUrlId))
+		w.Write([]byte("http://localhost:8080/" + shortURLID))
 	case http.MethodGet:
-		shortUrlId := r.URL.Path[1:]
-		if fullURL, ok := urlsMap[shortUrlId]; ok {
+		shortURLID := r.URL.Path[1:]
+		if fullURL, ok := urlsMap[shortURLID]; ok {
 			w.Header().Set("Location", fullURL)
 			w.WriteHeader(http.StatusTemporaryRedirect)
 		} else {
