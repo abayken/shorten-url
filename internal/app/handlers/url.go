@@ -24,20 +24,20 @@ func CreateShortURL(w http.ResponseWriter, r *http.Request) {
 
 		url := string(body)
 
-		urlShortener := app.UrlShortener{Url: url}
+		urlShortener := app.URLShortener{URL: url}
 
-		shortUrl := urlShortener.AsShort()
+		shortURL := urlShortener.AsShort()
 
-		urlsMap[shortUrl] = url
+		urlsMap[shortURL] = url
 
 		w.WriteHeader(http.StatusCreated)
 
-		w.Write([]byte(shortUrl))
+		w.Write([]byte(shortURL))
 	case http.MethodGet:
 		shortUrl := r.URL.Path[1:]
 
-		if fullUrl, ok := urlsMap[shortUrl]; ok {
-			w.Header().Set("Location", fullUrl)
+		if fullURL, ok := urlsMap[shortUrl]; ok {
+			w.Header().Set("Location", fullURL)
 			w.WriteHeader(http.StatusTemporaryRedirect)
 		} else {
 			w.WriteHeader(http.StatusBadRequest)

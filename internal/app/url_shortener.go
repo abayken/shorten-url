@@ -5,12 +5,12 @@ import (
 	"strconv"
 )
 
-type UrlShortener struct {
-	Url string
+type URLShortener struct {
+	URL string
 }
 
-func (shortener UrlShortener) AsShort() string {
-	randomId := rand.Intn((99999 - 10000) + 10000)
+func (shortener URLShortener) AsShort() string {
+	randomID := rand.Intn((99999 - 10000) + 10000)
 
-	return "bit.ly" + strconv.Itoa(randomId)
+	return "bit.ly" + strconv.Itoa(randomID)
 }
