@@ -9,8 +9,8 @@ type URLShortener struct {
 	URL string
 }
 
-func (shortener URLShortener) AsShort() string {
+func (shortener URLShortener) Id() string {
 	randomID := rand.Intn((99999 - 10000) + 10000)
 
-	return "bit.ly" + strconv.Itoa(randomID)
+	return strconv.Itoa(randomID)
 }
