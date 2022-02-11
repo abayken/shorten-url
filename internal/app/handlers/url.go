@@ -34,9 +34,9 @@ func CreateShortURL(w http.ResponseWriter, r *http.Request) {
 
 		w.Write([]byte(shortURL))
 	case http.MethodGet:
-		shortUrl := r.URL.Path[1:]
+		shortURL := r.URL.Path[1:]
 
-		if fullURL, ok := urlsMap[shortUrl]; ok {
+		if fullURL, ok := urlsMap[shortURL]; ok {
 			w.Header().Set("Location", fullURL)
 			w.WriteHeader(http.StatusTemporaryRedirect)
 		} else {
