@@ -1,15 +1,19 @@
 package handlers
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 
 	"github.com/abayken/shorten-url/internal/app"
+	"github.com/abayken/shorten-url/internal/app/storage"
 )
 
-var urlsMap = make(map[string]string)
+type URLHandler struct {
+	Storage storage.URLStorage
+}
 
-func CreateShortURL(w http.ResponseWriter, r *http.Request) {
+func (handler *URLHandler) ServerHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
 		defer r.Body.Close()
@@ -28,17 +32,23 @@ func CreateShortURL(w http.ResponseWriter, r *http.Request) {
 
 		shortURLID := urlShortener.ID()
 
-		urlsMap[shortURLID] = url
+		handler.Storage.Save(shortURLID, url)
 
 		w.WriteHeader(http.StatusCreated)
 
 		w.Write([]byte("http://localhost:8080/" + shortURLID))
 	case http.MethodGet:
+		fmt.Println("called")
 		shortURLID := r.URL.Path[1:]
-		if fullURL, ok := urlsMap[shortURLID]; ok {
+
+		fullURL := handler.Storage.Get(shortURLID)
+
+		if fullURL != "" {
+			fmt.Println("if tag: " + fullURL)
 			w.Header().Set("Location", fullURL)
 			w.WriteHeader(http.StatusTemporaryRedirect)
 		} else {
+			fmt.Println("else tag")
 			w.WriteHeader(http.StatusBadRequest)
 		}
 	default:
