@@ -52,5 +52,6 @@ func TestURLGet(testing *testing.T) {
 	getMethodRecorder := httptest.NewRecorder()
 	h.ServeHTTP(getMethodRecorder, request)
 	getMethodResult := getMethodRecorder.Result()
+	getMethodResult.Body.Close()
 	assert.Equal(testing, fullURL, getMethodResult.Header.Get("Location"))
 }
