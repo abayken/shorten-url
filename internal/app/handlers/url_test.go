@@ -35,7 +35,7 @@ func TestURLSave(testing *testing.T) {
 
 	shortURL := string(bodyResult[:])
 
-	assert.True(testing, shortURL != "")
+	assert.NotEmpty(testing, shortURL)
 }
 
 func TestURLGet(testing *testing.T) {
