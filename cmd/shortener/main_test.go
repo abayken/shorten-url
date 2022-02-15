@@ -1,4 +1,4 @@
-package handlers
+package main
 
 import (
 	"io/ioutil"
@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/abayken/shorten-url/internal/app/storage"
+	"github.com/abayken/shorten-url/internal/app/router"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -18,11 +18,10 @@ const (
 
 /// Тест который проверяет сокращения урла через POST запрос
 func TestURLSave(testing *testing.T) {
+	router := router.GetRouter()
 	request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(fullURL))
 	recorder := httptest.NewRecorder()
-	customURLHandler := URLHandler{Storage: storage.MapURLStorage{}}
-	h := http.HandlerFunc(customURLHandler.ServerHTTP)
-	h.ServeHTTP(recorder, request)
+	router.ServeHTTP(recorder, request)
 
 	result := recorder.Result()
 
@@ -39,12 +38,12 @@ func TestURLSave(testing *testing.T) {
 }
 
 func TestURLGet(testing *testing.T) {
+	router := router.GetRouter()
 	/// сперва делаем POST запрос
 	request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(fullURL))
 	recorder := httptest.NewRecorder()
-	customURLHandler := URLHandler{Storage: storage.MapURLStorage{}}
-	h := http.HandlerFunc(customURLHandler.ServerHTTP)
-	h.ServeHTTP(recorder, request)
+
+	router.ServeHTTP(recorder, request)
 	result := recorder.Result()
 
 	bodyResult, err := ioutil.ReadAll(result.Body)
@@ -57,7 +56,7 @@ func TestURLGet(testing *testing.T) {
 	/// Делаем GET запрос и проверяем результат
 	request = httptest.NewRequest(http.MethodGet, shortURL, nil)
 	getMethodRecorder := httptest.NewRecorder()
-	h.ServeHTTP(getMethodRecorder, request)
+	router.ServeHTTP(getMethodRecorder, request)
 	getMethodResult := getMethodRecorder.Result()
 	getMethodResult.Body.Close()
 
