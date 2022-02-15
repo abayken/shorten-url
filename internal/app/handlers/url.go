@@ -20,7 +20,7 @@ func (handler *URLHandler) GetFullURL(context *gin.Context) {
 
 	if fullURL != "" {
 		context.Header("Location", fullURL)
-		context.Status(http.StatusOK)
+		context.Status(http.StatusTemporaryRedirect)
 	} else {
 		context.Status(http.StatusBadRequest)
 	}
