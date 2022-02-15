@@ -1,53 +1,49 @@
 package handlers
 
 import (
-	"io"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/abayken/shorten-url/internal/app"
 	"github.com/abayken/shorten-url/internal/app/storage"
+	"github.com/gin-gonic/gin"
 )
 
 type URLHandler struct {
 	Storage storage.URLStorage
 }
 
-func (handler *URLHandler) ServerHTTP(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodPost:
-		defer r.Body.Close()
+func (handler *URLHandler) GetFullURL(context *gin.Context) {
+	shortURLID := context.Param("id")
 
-		body, err := io.ReadAll(r.Body)
+	fullURL := handler.Storage.Get(shortURLID)
 
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-
-			return
-		}
-
-		url := string(body)
-
-		urlShortener := app.URLShortener{URL: url}
-
-		shortURLID := urlShortener.ID()
-
-		handler.Storage.Save(shortURLID, url)
-
-		w.WriteHeader(http.StatusCreated)
-
-		w.Write([]byte("http://localhost:8080/" + shortURLID))
-	case http.MethodGet:
-		shortURLID := r.URL.Path[1:]
-
-		fullURL := handler.Storage.Get(shortURLID)
-
-		if fullURL != "" {
-			w.Header().Set("Location", fullURL)
-			w.WriteHeader(http.StatusTemporaryRedirect)
-		} else {
-			w.WriteHeader(http.StatusBadRequest)
-		}
-	default:
-		break
+	if fullURL != "" {
+		context.Header("Location", fullURL)
+		context.Status(http.StatusOK)
+	} else {
+		context.Status(http.StatusBadRequest)
 	}
+}
+
+func (handler *URLHandler) PostFullURL(context *gin.Context) {
+	fullURLByte, err := ioutil.ReadAll(context.Request.Body)
+
+	if err != nil {
+		context.Status(http.StatusBadRequest)
+
+		return
+	}
+
+	url := string(fullURLByte)
+
+	defer context.Request.Body.Close()
+
+	urlShortener := app.URLShortener{URL: url}
+
+	shortURLID := urlShortener.ID()
+
+	handler.Storage.Save(shortURLID, url)
+
+	context.String(http.StatusCreated, "http://localhost:8080/"+shortURLID)
 }

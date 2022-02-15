@@ -1,14 +1,10 @@
 package main
 
 import (
-	"net/http"
-
-	"github.com/abayken/shorten-url/internal/app/handlers"
-	"github.com/abayken/shorten-url/internal/app/storage"
+	"github.com/abayken/shorten-url/internal/app/router"
 )
 
 func main() {
-	handler := handlers.URLHandler{Storage: storage.MapURLStorage{}}
-	http.HandleFunc("/", handler.ServerHTTP)
-	http.ListenAndServe(":8080", nil)
+	router := router.GetRouter()
+	router.Run(":8080")
 }
