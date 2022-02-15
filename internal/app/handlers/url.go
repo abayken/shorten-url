@@ -10,7 +10,8 @@ import (
 )
 
 type URLHandler struct {
-	Storage storage.URLStorage
+	Storage      storage.URLStorage
+	URLShortener app.URLShortener
 }
 
 func (handler *URLHandler) GetFullURL(context *gin.Context) {
@@ -39,9 +40,7 @@ func (handler *URLHandler) PostFullURL(context *gin.Context) {
 
 	defer context.Request.Body.Close()
 
-	urlShortener := app.URLShortener{URL: url}
-
-	shortURLID := urlShortener.ID()
+	shortURLID := handler.URLShortener.ID()
 
 	handler.Storage.Save(shortURLID, url)
 
