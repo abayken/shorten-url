@@ -14,35 +14,35 @@ type URLHandler struct {
 	URLShortener app.URLShortener
 }
 
-func (handler *URLHandler) GetFullURL(context *gin.Context) {
-	shortURLID := context.Param("id")
+func (handler *URLHandler) GetFullURL(ctx *gin.Context) {
+	shortURLID := ctx.Param("id")
 
 	fullURL := handler.Storage.Get(shortURLID)
 
 	if fullURL != "" {
-		context.Header("Location", fullURL)
-		context.Status(http.StatusTemporaryRedirect)
+		ctx.Header("Location", fullURL)
+		ctx.Status(http.StatusTemporaryRedirect)
 	} else {
-		context.Status(http.StatusBadRequest)
+		ctx.Status(http.StatusBadRequest)
 	}
 }
 
-func (handler *URLHandler) PostFullURL(context *gin.Context) {
-	fullURLByte, err := ioutil.ReadAll(context.Request.Body)
+func (handler *URLHandler) PostFullURL(ctx *gin.Context) {
+	fullURLByte, err := ioutil.ReadAll(ctx.Request.Body)
 
 	if err != nil {
-		context.Status(http.StatusBadRequest)
+		ctx.Status(http.StatusBadRequest)
 
 		return
 	}
 
 	url := string(fullURLByte)
 
-	defer context.Request.Body.Close()
+	defer ctx.Request.Body.Close()
 
 	shortURLID := handler.URLShortener.ID()
 
 	handler.Storage.Save(shortURLID, url)
 
-	context.String(http.StatusCreated, "http://localhost:8080/"+shortURLID)
+	ctx.String(http.StatusCreated, "http://localhost:8080/"+shortURLID)
 }
