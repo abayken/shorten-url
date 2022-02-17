@@ -2,14 +2,17 @@ package storage
 
 /// Storage который сохраняет урлы в словарик
 type MapURLStorage struct {
+	urlsMap map[string]string
 }
 
-var urlsMap = make(map[string]string)
+func NewMapURLStorage(urls map[string]string) *MapURLStorage {
+	return &MapURLStorage{urlsMap: urls}
+}
 
 func (storage MapURLStorage) Save(shortURLID, fullURL string) {
-	urlsMap[shortURLID] = fullURL
+	storage.urlsMap[shortURLID] = fullURL
 }
 
 func (storage MapURLStorage) Get(shortURLID string) string {
-	return urlsMap[shortURLID]
+	return storage.urlsMap[shortURLID]
 }

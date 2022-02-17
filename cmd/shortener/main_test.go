@@ -28,7 +28,7 @@ const (
 
 /// Тест который проверяет сокращения урла через POST запрос
 func TestURLSave(testing *testing.T) {
-	router := router.GetRouter(storage.MapURLStorage{}, FakeURLShortener{})
+	router := router.GetRouter(storage.NewMapURLStorage(map[string]string{}), FakeURLShortener{})
 	request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(fullURL))
 	recorder := httptest.NewRecorder()
 	router.ServeHTTP(recorder, request)
@@ -47,7 +47,7 @@ func TestURLSave(testing *testing.T) {
 }
 
 func TestURLGet(testing *testing.T) {
-	router := router.GetRouter(storage.MapURLStorage{}, FakeURLShortener{})
+	router := router.GetRouter(storage.NewMapURLStorage(make(map[string]string)), FakeURLShortener{})
 	/// сперва делаем POST запрос
 	request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(fullURL))
 	recorder := httptest.NewRecorder()

@@ -7,6 +7,6 @@ import (
 )
 
 func main() {
-	router := router.GetRouter(storage.MapURLStorage{}, app.RealURLShortener{})
+	router := router.GetRouter(storage.NewMapURLStorage(make(map[string]string)), app.RealURLShortener{})
 	router.Run(":8080")
 }
