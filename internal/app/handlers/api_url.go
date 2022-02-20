@@ -61,5 +61,5 @@ func (handler *URLHandler) PostApiFullURL(ctx *gin.Context) {
 	}
 
 	ctx.Writer.Header().Set("Content-Type", "application/json")
-	ctx.String(http.StatusOK, string(jsonResponse))
+	ctx.String(http.StatusCreated, string(jsonResponse))
 }

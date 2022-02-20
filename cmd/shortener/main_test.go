@@ -89,7 +89,7 @@ func TestURLApiPost(testing *testing.T) {
 	result := recorder.Result()
 
 	/// проверка статус кода
-	assert.Equal(testing, 200, result.StatusCode)
+	assert.Equal(testing, 201, result.StatusCode)
 
 	/// проверка сокращенного урла
 	bodyResult, _ := ioutil.ReadAll(result.Body)
