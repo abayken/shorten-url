@@ -12,7 +12,7 @@ func GetRouter(storage storage.URLStorage, urlShortener app.URLShortener) *gin.E
 	router := gin.New()
 	router.GET("/:id", handler.GetFullURL)
 	router.POST("/", handler.PostFullURL)
-	router.POST("/api/shorten", handler.PostApiFullURL)
+	router.POST("/api/shorten", handler.PostAPIFullURL)
 
 	return router
 }
