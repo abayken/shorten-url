@@ -1,12 +1,15 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
+	"github.com/abayken/shorten-url/internal/app/handlers"
 	"github.com/abayken/shorten-url/internal/app/router"
 	"github.com/abayken/shorten-url/internal/app/storage"
 	"github.com/stretchr/testify/assert"
@@ -70,4 +73,31 @@ func TestURLGet(testing *testing.T) {
 	getMethodResult.Body.Close()
 
 	assert.Equal(testing, fullURL, getMethodResult.Header.Get("Location"))
+}
+
+/// Тест на метод /api/shorten
+func TestURLApiPost(testing *testing.T) {
+	router := router.GetRouter(storage.NewMapURLStorage(make(map[string]string)), FakeURLShortener{})
+
+	requestModel := handlers.PostAPIURLRequest{URL: fullURL}
+	requestBody, _ := json.Marshal(requestModel)
+
+	request := httptest.NewRequest(http.MethodPost, "/api/shorten", bytes.NewReader(requestBody))
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, request)
+
+	result := recorder.Result()
+
+	defer result.Body.Close()
+
+	/// проверка статус кода
+	assert.Equal(testing, 201, result.StatusCode)
+
+	/// проверка сокращенного урла
+	bodyResult, _ := ioutil.ReadAll(result.Body)
+
+	var responseModel handlers.PostAPIURLResponse
+
+	_ = json.Unmarshal(bodyResult, &responseModel)
+	assert.Equal(testing, baseURL+fakeID, responseModel.Result)
 }
