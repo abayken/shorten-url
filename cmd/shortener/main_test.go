@@ -79,7 +79,7 @@ func TestURLGet(testing *testing.T) {
 func TestURLApiPost(testing *testing.T) {
 	router := router.GetRouter(storage.NewMapURLStorage(make(map[string]string)), FakeURLShortener{})
 
-	requestModel := handlers.PostApiURLRequest{URL: fullURL}
+	requestModel := handlers.PostAPIURLRequest{URL: fullURL}
 	requestBody, _ := json.Marshal(requestModel)
 
 	request := httptest.NewRequest(http.MethodPost, "/api/shorten", bytes.NewReader(requestBody))
@@ -94,7 +94,7 @@ func TestURLApiPost(testing *testing.T) {
 	/// проверка сокращенного урла
 	bodyResult, _ := ioutil.ReadAll(result.Body)
 
-	var responseModel handlers.PostApiURLResponse
+	var responseModel handlers.PostAPIURLResponse
 
 	_ = json.Unmarshal(bodyResult, &responseModel)
 	assert.Equal(testing, baseURL+fakeID, responseModel.Result)

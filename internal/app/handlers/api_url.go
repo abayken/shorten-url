@@ -11,22 +11,22 @@ import (
 /// Здесь лежат хэндлеры для апишки
 
 /// Формат body для метода /api/shorten от клиента
-type PostApiURLRequest struct {
+type PostAPIURLRequest struct {
 	URL string `json:"url"`
 }
 
 /// Формат ответа для метода /api/shorten
-type PostApiURLResponse struct {
+type PostAPIURLResponse struct {
 	Result string `json:"result"`
 }
 
 const (
-	BASE_URL = "http://localhost:8080/"
+	baseURL = "http://localhost:8080/"
 )
 
 /// Метод который возвращает сокращенный URL
 /// Отвечает в виде JSON
-func (handler *URLHandler) PostApiFullURL(ctx *gin.Context) {
+func (handler *URLHandler) PostAPIFullURL(ctx *gin.Context) {
 	body, err := ioutil.ReadAll(ctx.Request.Body)
 
 	if err != nil {
@@ -35,7 +35,7 @@ func (handler *URLHandler) PostApiFullURL(ctx *gin.Context) {
 		return
 	}
 
-	var model PostApiURLRequest
+	var model PostAPIURLRequest
 
 	err = json.Unmarshal(body, &model)
 
@@ -50,7 +50,7 @@ func (handler *URLHandler) PostApiFullURL(ctx *gin.Context) {
 	shortURLID := handler.URLShortener.ID()
 	handler.Storage.Save(shortURLID, model.URL)
 
-	responseModel := PostApiURLResponse{Result: BASE_URL + shortURLID}
+	responseModel := PostAPIURLResponse{Result: baseURL + shortURLID}
 
 	jsonResponse, err := json.Marshal(responseModel)
 
