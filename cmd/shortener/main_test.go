@@ -88,6 +88,8 @@ func TestURLApiPost(testing *testing.T) {
 
 	result := recorder.Result()
 
+	defer result.Body.Close()
+
 	/// проверка статус кода
 	assert.Equal(testing, 201, result.StatusCode)
 
