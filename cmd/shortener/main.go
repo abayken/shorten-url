@@ -10,7 +10,6 @@ import (
 
 func main() {
 	setupEnv()
-
 	router := router.GetRouter(storage.NewMapURLStorage(make(map[string]string)), app.RealURLShortener{})
 	router.Run(os.Getenv("SERVER_ADDRESS"))
 }
