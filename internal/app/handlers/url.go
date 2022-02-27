@@ -3,6 +3,7 @@ package handlers
 import (
 	"io/ioutil"
 	"net/http"
+	"os"
 
 	"github.com/abayken/shorten-url/internal/app"
 	"github.com/abayken/shorten-url/internal/app/storage"
@@ -44,5 +45,7 @@ func (handler *URLHandler) PostFullURL(ctx *gin.Context) {
 
 	handler.Storage.Save(shortURLID, url)
 
-	ctx.String(http.StatusCreated, "http://localhost:8080/"+shortURLID)
+	baseURL := os.Getenv("BASE_URL")
+
+	ctx.String(http.StatusCreated, baseURL+shortURLID)
 }
