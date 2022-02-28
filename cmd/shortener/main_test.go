@@ -1,10 +1,8 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -15,6 +13,7 @@ import (
 	"github.com/abayken/shorten-url/internal/app/handlers"
 	"github.com/abayken/shorten-url/internal/app/storage"
 	"github.com/caarlos0/env/v6"
+	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -32,61 +31,7 @@ const (
 	baseURL = "http://localhost:8080/"
 )
 
-/// Тест который проверяет сокращения урла через POST запрос
-func TestURLSave(testing *testing.T) {
-	result := request(http.MethodPost, "/", strings.NewReader(fullURL))
-
-	assert.Equal(testing, 201, result.StatusCode)
-
-	bodyResult, err := ioutil.ReadAll(result.Body)
-	require.NoError(testing, err)
-	err = result.Body.Close()
-	require.NoError(testing, err)
-
-	shortURL := string(bodyResult[:])
-	assert.Equal(testing, baseURL+fakeID, shortURL)
-}
-
-func TestURLGet(testing *testing.T) {
-	result := request(http.MethodPost, "/", strings.NewReader(fullURL))
-
-	bodyResult, err := ioutil.ReadAll(result.Body)
-	require.NoError(testing, err)
-	err = result.Body.Close()
-	require.NoError(testing, err)
-
-	shortURL := string(bodyResult[:])
-	fmt.Println(shortURL)
-	/// Делаем GET запрос и проверяем результат
-	getMethodResult := request(http.MethodGet, shortURL, nil)
-	getMethodResult.Body.Close()
-
-	assert.Equal(testing, fullURL, getMethodResult.Header.Get("Location"))
-}
-
-/// Тест на метод /api/shorten
-func TestURLApiPost(testing *testing.T) {
-	requestModel := handlers.PostAPIURLRequest{URL: fullURL}
-	requestBody, _ := json.Marshal(requestModel)
-
-	result := request(http.MethodPost, "/api/shorten", bytes.NewReader(requestBody))
-
-	defer result.Body.Close()
-
-	// проверка статус кода
-	assert.Equal(testing, 201, result.StatusCode)
-
-	/// проверка сокращенного урла
-	bodyResult, _ := ioutil.ReadAll(result.Body)
-
-	var responseModel handlers.PostAPIURLResponse
-
-	_ = json.Unmarshal(bodyResult, &responseModel)
-	assert.Equal(testing, baseURL+fakeID, responseModel.Result)
-}
-
-/// стучится в некий ендпойнт
-func request(method string, url string, body io.Reader) *http.Response {
+func TestEndpoints(t *testing.T) {
 	cfg := Config{}
 	err := env.Parse(&cfg)
 	if err != nil {
@@ -95,11 +40,83 @@ func request(method string, url string, body io.Reader) *http.Response {
 
 	router := GetRouter(storage.NewMapURLStorage(make(map[string]string)), FakeURLShortener{}, cfg)
 
-	request := httptest.NewRequest(method, url, body)
+	type want struct {
+		status         int
+		locationHeader string
+		bodyChecker    func(body []byte) bool
+	}
+
+	type test struct {
+		name   string
+		url    string
+		method string
+		body   string
+		want   want
+	}
+
+	var tests = []test{
+		{
+			name:   "Test POST to /",
+			url:    "/",
+			method: http.MethodPost,
+			body:   fullURL,
+			want: want{
+				status: http.StatusCreated,
+				bodyChecker: func(body []byte) bool {
+					response := string(body)
+					return response == baseURL+fakeID
+				},
+			},
+		},
+		{
+			name:   "Test GET short url",
+			url:    baseURL + fakeID,
+			method: http.MethodGet,
+			want: want{
+				status:         http.StatusTemporaryRedirect,
+				locationHeader: fullURL,
+			},
+		},
+		{
+			name:   "Test /api/shorten",
+			url:    "/api/shorten",
+			method: http.MethodPost,
+			body:   fmt.Sprintf(`{"result":"%s"}`, fullURL),
+			want: want{
+				status: http.StatusCreated,
+				bodyChecker: func(body []byte) bool {
+					var response handlers.PostAPIURLResponse
+
+					json.Unmarshal(body, &response)
+					return response.Result == baseURL+fakeID
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := request(tt.method, tt.url, tt.body, router)
+			bodyResult, err := ioutil.ReadAll(result.Body)
+			require.NoError(t, err)
+
+			assert.Equal(t, tt.want.status, result.StatusCode)
+			assert.Equal(t, tt.want.locationHeader, result.Header.Get("Location"))
+
+			if tt.want.bodyChecker != nil {
+				assert.Equal(t, tt.want.bodyChecker(bodyResult), true)
+			}
+
+			defer result.Body.Close()
+		})
+	}
+}
+
+/// стучится в некий ендпойнт
+func request(method string, url string, body string, router *gin.Engine) *http.Response {
+	request := httptest.NewRequest(method, url, strings.NewReader(body))
 	recorder := httptest.NewRecorder()
 	router.ServeHTTP(recorder, request)
-
 	result := recorder.Result()
-
 	return result
 }
