@@ -3,15 +3,18 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
 	"github.com/abayken/shorten-url/internal/app/handlers"
-	"github.com/abayken/shorten-url/internal/app/router"
 	"github.com/abayken/shorten-url/internal/app/storage"
+	"github.com/caarlos0/env/v6"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -31,12 +34,7 @@ const (
 
 /// Тест который проверяет сокращения урла через POST запрос
 func TestURLSave(testing *testing.T) {
-	router := router.GetRouter(storage.NewMapURLStorage(map[string]string{}), FakeURLShortener{})
-	request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(fullURL))
-	recorder := httptest.NewRecorder()
-	router.ServeHTTP(recorder, request)
-
-	result := recorder.Result()
+	result := request(http.MethodPost, "/", strings.NewReader(fullURL))
 
 	assert.Equal(testing, 201, result.StatusCode)
 
@@ -50,13 +48,7 @@ func TestURLSave(testing *testing.T) {
 }
 
 func TestURLGet(testing *testing.T) {
-	router := router.GetRouter(storage.NewMapURLStorage(make(map[string]string)), FakeURLShortener{})
-	/// сперва делаем POST запрос
-	request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(fullURL))
-	recorder := httptest.NewRecorder()
-
-	router.ServeHTTP(recorder, request)
-	result := recorder.Result()
+	result := request(http.MethodPost, "/", strings.NewReader(fullURL))
 
 	bodyResult, err := ioutil.ReadAll(result.Body)
 	require.NoError(testing, err)
@@ -64,12 +56,9 @@ func TestURLGet(testing *testing.T) {
 	require.NoError(testing, err)
 
 	shortURL := string(bodyResult[:])
-
+	fmt.Println(shortURL)
 	/// Делаем GET запрос и проверяем результат
-	request = httptest.NewRequest(http.MethodGet, shortURL, nil)
-	getMethodRecorder := httptest.NewRecorder()
-	router.ServeHTTP(getMethodRecorder, request)
-	getMethodResult := getMethodRecorder.Result()
+	getMethodResult := request(http.MethodGet, shortURL, nil)
 	getMethodResult.Body.Close()
 
 	assert.Equal(testing, fullURL, getMethodResult.Header.Get("Location"))
@@ -77,20 +66,14 @@ func TestURLGet(testing *testing.T) {
 
 /// Тест на метод /api/shorten
 func TestURLApiPost(testing *testing.T) {
-	router := router.GetRouter(storage.NewMapURLStorage(make(map[string]string)), FakeURLShortener{})
-
 	requestModel := handlers.PostAPIURLRequest{URL: fullURL}
 	requestBody, _ := json.Marshal(requestModel)
 
-	request := httptest.NewRequest(http.MethodPost, "/api/shorten", bytes.NewReader(requestBody))
-	recorder := httptest.NewRecorder()
-	router.ServeHTTP(recorder, request)
-
-	result := recorder.Result()
+	result := request(http.MethodPost, "/api/shorten", bytes.NewReader(requestBody))
 
 	defer result.Body.Close()
 
-	/// проверка статус кода
+	// проверка статус кода
 	assert.Equal(testing, 201, result.StatusCode)
 
 	/// проверка сокращенного урла
@@ -100,4 +83,23 @@ func TestURLApiPost(testing *testing.T) {
 
 	_ = json.Unmarshal(bodyResult, &responseModel)
 	assert.Equal(testing, baseURL+fakeID, responseModel.Result)
+}
+
+/// стучится в некий ендпойнт
+func request(method string, url string, body io.Reader) *http.Response {
+	cfg := Config{}
+	err := env.Parse(&cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	router := GetRouter(storage.NewMapURLStorage(make(map[string]string)), FakeURLShortener{}, cfg)
+
+	request := httptest.NewRequest(method, url, body)
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, request)
+
+	result := recorder.Result()
+
+	return result
 }

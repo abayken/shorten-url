@@ -3,7 +3,6 @@ package handlers
 import (
 	"io/ioutil"
 	"net/http"
-	"os"
 
 	"github.com/abayken/shorten-url/internal/app"
 	"github.com/abayken/shorten-url/internal/app/storage"
@@ -13,6 +12,7 @@ import (
 type URLHandler struct {
 	Storage      storage.URLStorage
 	URLShortener app.URLShortener
+	BaseURL      string
 }
 
 func (handler *URLHandler) GetFullURL(ctx *gin.Context) {
@@ -45,7 +45,5 @@ func (handler *URLHandler) PostFullURL(ctx *gin.Context) {
 
 	handler.Storage.Save(shortURLID, url)
 
-	baseURL := os.Getenv("BASE_URL")
-
-	ctx.String(http.StatusCreated, baseURL+shortURLID)
+	ctx.String(http.StatusCreated, handler.BaseURL+shortURLID)
 }
