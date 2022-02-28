@@ -81,7 +81,7 @@ func TestEndpoints(t *testing.T) {
 			name:   "Test /api/shorten",
 			url:    "/api/shorten",
 			method: http.MethodPost,
-			body:   fmt.Sprintf(`{"result":"%s"}`, fullURL),
+			body:   fmt.Sprintf(`{"url":"%s"}`, fullURL),
 			want: want{
 				status: http.StatusCreated,
 				bodyChecker: func(body []byte) bool {
