@@ -20,10 +20,6 @@ type PostAPIURLResponse struct {
 	Result string `json:"result"`
 }
 
-const (
-	baseURL = "http://localhost:8080/"
-)
-
 /// Метод который возвращает сокращенный URL
 /// Отвечает в виде JSON
 func (handler *URLHandler) PostAPIFullURL(ctx *gin.Context) {
@@ -50,7 +46,7 @@ func (handler *URLHandler) PostAPIFullURL(ctx *gin.Context) {
 	shortURLID := handler.URLShortener.ID()
 	handler.Storage.Save(shortURLID, model.URL)
 
-	responseModel := PostAPIURLResponse{Result: baseURL + shortURLID}
+	responseModel := PostAPIURLResponse{Result: handler.BaseURL + "/" + shortURLID}
 
 	jsonResponse, err := json.Marshal(responseModel)
 
