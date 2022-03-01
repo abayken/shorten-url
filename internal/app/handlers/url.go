@@ -45,5 +45,5 @@ func (handler *URLHandler) PostFullURL(ctx *gin.Context) {
 
 	handler.Storage.Save(shortURLID, url)
 
-	ctx.String(http.StatusCreated, handler.BaseURL+shortURLID)
+	ctx.String(http.StatusCreated, handler.BaseURL+"/"+shortURLID)
 }
