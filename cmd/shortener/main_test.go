@@ -1,14 +1,19 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
-	"github.com/abayken/shorten-url/internal/app/router"
+	"github.com/abayken/shorten-url/internal/app/handlers"
 	"github.com/abayken/shorten-url/internal/app/storage"
+	"github.com/caarlos0/env/v6"
+	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -26,48 +31,92 @@ const (
 	baseURL = "http://localhost:8080/"
 )
 
-/// Тест который проверяет сокращения урла через POST запрос
-func TestURLSave(testing *testing.T) {
-	router := router.GetRouter(storage.NewMapURLStorage(map[string]string{}), FakeURLShortener{})
-	request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(fullURL))
-	recorder := httptest.NewRecorder()
-	router.ServeHTTP(recorder, request)
+func TestEndpoints(t *testing.T) {
+	cfg := Config{}
+	err := env.Parse(&cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	result := recorder.Result()
+	router := GetRouter(storage.NewMapURLStorage(make(map[string]string)), FakeURLShortener{}, cfg)
 
-	assert.Equal(testing, 201, result.StatusCode)
+	type want struct {
+		status         int
+		locationHeader string
+		bodyChecker    func(body []byte) bool
+	}
 
-	bodyResult, err := ioutil.ReadAll(result.Body)
-	require.NoError(testing, err)
-	err = result.Body.Close()
-	require.NoError(testing, err)
+	type test struct {
+		name   string
+		url    string
+		method string
+		body   string
+		want   want
+	}
 
-	shortURL := string(bodyResult[:])
-	assert.Equal(testing, baseURL+fakeID, shortURL)
+	var tests = []test{
+		{
+			name:   "Test POST to /",
+			url:    "/",
+			method: http.MethodPost,
+			body:   fullURL,
+			want: want{
+				status: http.StatusCreated,
+				bodyChecker: func(body []byte) bool {
+					response := string(body)
+					return response == baseURL+fakeID
+				},
+			},
+		},
+		{
+			name:   "Test GET short url",
+			url:    baseURL + fakeID,
+			method: http.MethodGet,
+			want: want{
+				status:         http.StatusTemporaryRedirect,
+				locationHeader: fullURL,
+			},
+		},
+		{
+			name:   "Test /api/shorten",
+			url:    "/api/shorten",
+			method: http.MethodPost,
+			body:   fmt.Sprintf(`{"url":"%s"}`, fullURL),
+			want: want{
+				status: http.StatusCreated,
+				bodyChecker: func(body []byte) bool {
+					var response handlers.PostAPIURLResponse
+
+					json.Unmarshal(body, &response)
+					return response.Result == baseURL+fakeID
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := request(tt.method, tt.url, tt.body, router)
+			bodyResult, err := ioutil.ReadAll(result.Body)
+			require.NoError(t, err)
+
+			assert.Equal(t, tt.want.status, result.StatusCode)
+			assert.Equal(t, tt.want.locationHeader, result.Header.Get("Location"))
+
+			if tt.want.bodyChecker != nil {
+				assert.Equal(t, tt.want.bodyChecker(bodyResult), true)
+			}
+
+			defer result.Body.Close()
+		})
+	}
 }
 
-func TestURLGet(testing *testing.T) {
-	router := router.GetRouter(storage.NewMapURLStorage(make(map[string]string)), FakeURLShortener{})
-	/// сперва делаем POST запрос
-	request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(fullURL))
+/// стучится в некий ендпойнт
+func request(method string, url string, body string, router *gin.Engine) *http.Response {
+	request := httptest.NewRequest(method, url, strings.NewReader(body))
 	recorder := httptest.NewRecorder()
-
 	router.ServeHTTP(recorder, request)
 	result := recorder.Result()
-
-	bodyResult, err := ioutil.ReadAll(result.Body)
-	require.NoError(testing, err)
-	err = result.Body.Close()
-	require.NoError(testing, err)
-
-	shortURL := string(bodyResult[:])
-
-	/// Делаем GET запрос и проверяем результат
-	request = httptest.NewRequest(http.MethodGet, shortURL, nil)
-	getMethodRecorder := httptest.NewRecorder()
-	router.ServeHTTP(getMethodRecorder, request)
-	getMethodResult := getMethodRecorder.Result()
-	getMethodResult.Body.Close()
-
-	assert.Equal(testing, fullURL, getMethodResult.Header.Get("Location"))
+	return result
 }

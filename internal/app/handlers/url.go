@@ -12,6 +12,7 @@ import (
 type URLHandler struct {
 	Storage      storage.URLStorage
 	URLShortener app.URLShortener
+	BaseURL      string
 }
 
 func (handler *URLHandler) GetFullURL(ctx *gin.Context) {
@@ -44,5 +45,5 @@ func (handler *URLHandler) PostFullURL(ctx *gin.Context) {
 
 	handler.Storage.Save(shortURLID, url)
 
-	ctx.String(http.StatusCreated, "http://localhost:8080/"+shortURLID)
+	ctx.String(http.StatusCreated, handler.BaseURL+"/"+shortURLID)
 }
