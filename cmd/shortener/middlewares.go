@@ -64,7 +64,7 @@ func Tokenize() gin.HandlerFunc {
 			/// Токена нет, генерим новый
 			encryptedToken, realToken, err := Generate()
 
-			if err != nil {
+			if err == nil {
 				setTokenCookie(ctx, encryptedToken)
 				realTokenForContext = realToken
 			}
