@@ -54,3 +54,29 @@ func Unpack() gin.HandlerFunc {
 		ctx.Next()
 	}
 }
+
+func Tokenize() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		token, err := ctx.Cookie("token")
+
+		if err != nil {
+			setTokenCookie(ctx)
+		} else {
+			if !IsValid(token) {
+				setTokenCookie(ctx)
+			}
+		}
+
+		ctx.Next()
+	}
+}
+
+func setTokenCookie(ctx *gin.Context) {
+	token, err := Generate()
+
+	if err != nil {
+		return
+	}
+
+	ctx.SetCookie("token", token, 3600, "/", "localhost", false, true)
+}

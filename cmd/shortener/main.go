@@ -40,6 +40,7 @@ func GetRouter(storage storage.URLStorage, urlShortener app.URLShortener, cfg Co
 	router := gin.New()
 	router.Use(Compress())
 	router.Use(Unpack())
+	router.Use(Tokenize())
 	router.GET("/:id", handler.GetFullURL)
 	router.POST("/", handler.PostFullURL)
 	router.POST("/api/shorten", handler.PostAPIFullURL)
