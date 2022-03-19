@@ -9,7 +9,7 @@ func NewMapURLStorage(urls map[string]string) *MapURLStorage {
 	return &MapURLStorage{urlsMap: urls}
 }
 
-func (storage MapURLStorage) Save(shortURLID, fullURL string) {
+func (storage MapURLStorage) Save(shortURLID, fullURL, userID string) {
 	storage.urlsMap[shortURLID] = fullURL
 }
 

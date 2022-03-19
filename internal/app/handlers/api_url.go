@@ -44,7 +44,9 @@ func (handler *URLHandler) PostAPIFullURL(ctx *gin.Context) {
 	defer ctx.Request.Body.Close()
 
 	shortURLID := handler.URLShortener.ID()
-	handler.Storage.Save(shortURLID, model.URL)
+	userID := ctx.GetString("token")
+
+	handler.Storage.Save(shortURLID, model.URL, userID)
 
 	responseModel := PostAPIURLResponse{Result: handler.BaseURL + "/" + shortURLID}
 
@@ -58,4 +60,28 @@ func (handler *URLHandler) PostAPIFullURL(ctx *gin.Context) {
 
 	ctx.Writer.Header().Set("Content-Type", "application/json")
 	ctx.String(http.StatusCreated, string(jsonResponse))
+}
+
+func (handler *URLHandler) GetUserURLs(ctx *gin.Context) {
+	userID := ctx.GetString("token")
+
+	urls := handler.Storage.FetchUserURLs(userID)
+
+	if len(urls) > 0 {
+		for index, url := range urls {
+			urls[index] = url.BaseURLAppended(handler.BaseURL)
+		}
+
+		jsonResponse, err := json.Marshal(urls)
+
+		if err != nil {
+			ctx.Status(http.StatusInternalServerError)
+
+			return
+		}
+
+		ctx.String(http.StatusOK, string(jsonResponse))
+	} else {
+		ctx.Status(http.StatusNoContent)
+	}
 }

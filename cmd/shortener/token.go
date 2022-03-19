@@ -13,20 +13,24 @@ import (
 var encryptionKey = "yandex-practikum"
 
 /// Возвращает шифрованный токен
-func Generate() (string, error) {
-	token, err := getRandomString()
+func Generate() (string, string, error) {
+	realToken, err := getRandomString()
 
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	return encrypt([]byte(encryptionKey), token)
+	encryptedToken, err := encrypt([]byte(encryptionKey), realToken)
+
+	if err != nil {
+		return "", "", err
+	}
+
+	return encryptedToken, realToken, nil
 }
 
-func IsValid(token string) bool {
-	_, err := decrypt([]byte(encryptionKey), token)
-
-	return err == nil
+func GetRealTokenIfValid(token string) (string, error) {
+	return decrypt([]byte(encryptionKey), token)
 }
 
 /// Шифрует сообщение по некому ключу

@@ -44,6 +44,7 @@ func GetRouter(storage storage.URLStorage, urlShortener app.URLShortener, cfg Co
 	router.GET("/:id", handler.GetFullURL)
 	router.POST("/", handler.PostFullURL)
 	router.POST("/api/shorten", handler.PostAPIFullURL)
+	router.GET("/api/user/urls", handler.GetUserURLs)
 
 	return router
 }
