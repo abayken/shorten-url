@@ -18,8 +18,6 @@ func (g *GzipWriter) Write(data []byte) (int, error) {
 
 func Compress() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		ctx.Next()
-
 		if strings.Contains(ctx.GetHeader("Accept-Encoding"), "gzip") {
 			gz, err := gzip.NewWriterLevel(ctx.Writer, gzip.BestSpeed)
 
@@ -32,5 +30,7 @@ func Compress() gin.HandlerFunc {
 			ctx.Header("Content-Encoding", "gzip")
 			ctx.Writer = &GzipWriter{ctx.Writer, gz}
 		}
+
+		ctx.Next()
 	}
 }
