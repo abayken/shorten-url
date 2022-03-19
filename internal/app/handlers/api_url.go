@@ -80,7 +80,7 @@ func (handler *URLHandler) GetUserURLs(ctx *gin.Context) {
 			return
 		}
 
-		ctx.String(http.StatusOK, string(jsonResponse))
+		ctx.Data(http.StatusOK, "application/json", jsonResponse)
 	} else {
 		ctx.Status(http.StatusNoContent)
 	}
