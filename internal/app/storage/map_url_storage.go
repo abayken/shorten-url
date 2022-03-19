@@ -16,3 +16,7 @@ func (storage MapURLStorage) Save(shortURLID, fullURL, userID string) {
 func (storage MapURLStorage) Get(shortURLID string) string {
 	return storage.urlsMap[shortURLID]
 }
+
+func (storage MapURLStorage) FetchUserURLs(userID string) []UserURL {
+	return []UserURL{}
+}
