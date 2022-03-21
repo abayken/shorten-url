@@ -11,6 +11,24 @@ type DatabaseStorage struct {
 	Url string
 }
 
+func (storage DatabaseStorage) InitTablesIfNeeded() {
+	conn, err := pgx.Connect(context.Background(), storage.Url)
+
+	if err != nil {
+		log.Fatal(err)
+
+		return
+	}
+
+	_, err = conn.Exec(context.Background(), "create table if not exists url (user_id varchar(100), short_url_id varchar(300), full_url varchar(1000));")
+
+	if err != nil {
+		log.Fatal(err)
+
+		return
+	}
+}
+
 func (storage DatabaseStorage) initDB() *pgx.Conn {
 	conn, err := pgx.Connect(context.Background(), storage.Url)
 
