@@ -22,11 +22,17 @@ func (storage DatabaseStorage) initDB() *pgx.Conn {
 }
 
 func (storage DatabaseStorage) Save(shortURLID, fullURL, userID string) {
-
+	var db = storage.initDB()
+	db.Exec(context.Background(), "insert into url values ($1, $2, $3)", userID, shortURLID, fullURL)
 }
 
 func (storage DatabaseStorage) Get(shortURLID string) string {
-	return "todo"
+	var db = storage.initDB()
+
+	var fullURL string
+	db.QueryRow(context.Background(), "select full_url from url where short_url_id = $1", shortURLID).Scan(&fullURL)
+
+	return fullURL
 }
 
 func (storage DatabaseStorage) FetchUserURLs(userID string) []UserURL {
