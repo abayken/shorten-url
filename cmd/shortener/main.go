@@ -34,17 +34,7 @@ func main() {
 
 	flag.Parse()
 
-	var urlStorage storage.URLStorage
-
-	if cfg.DatabaseURL != "" {
-		urlStorage = storage.DatabaseStorage{Url: cfg.DatabaseURL}
-	} else if cfg.FileStoragePath != "" {
-		urlStorage = storage.FileURLStorage{Path: cfg.FileStoragePath}
-	} else {
-		urlStorage = storage.NewMapURLStorage(map[string]string{})
-	}
-
-	router := GetRouter(urlStorage, app.RealURLShortener{}, cfg)
+	router := GetRouter(storage.FileURLStorage{Path: cfg.FileStoragePath}, app.RealURLShortener{}, cfg)
 	router.Run(cfg.ServerAddress)
 }
 
