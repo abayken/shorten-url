@@ -33,7 +33,7 @@ func main() {
 
 	flag.Parse()
 
-	router := GetRouter(storage.FileURLStorage{Path: cfg.FileStoragePath}, app.RealURLShortener{}, cfg)
+	router := GetRouter(storage.DatabaseStorage{Url: cfg.DatabaseURL}, app.RealURLShortener{}, cfg)
 	router.Run(cfg.ServerAddress)
 }
 
