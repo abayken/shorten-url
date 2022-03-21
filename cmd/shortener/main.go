@@ -16,7 +16,6 @@ type Config struct {
 	ServerAddress   string `env:"SERVER_ADDRESS" envDefault:":8080"`
 	BaseURL         string `env:"BASE_URL" envDefault:"http://localhost:8080"`
 	FileStoragePath string `env:"FILE_STORAGE_PATH"`
-	DatabaseURL     string `env:"DATABASE_DSN"`
 }
 
 func main() {
@@ -30,7 +29,6 @@ func main() {
 	flag.StringVar(&cfg.ServerAddress, "a", cfg.ServerAddress, "Адресс сервера")
 	flag.StringVar(&cfg.BaseURL, "b", cfg.BaseURL, "BaseURL сокращенного урла")
 	flag.StringVar(&cfg.FileStoragePath, "f", cfg.FileStoragePath, "Путь до файла где хранятся урлы")
-	flag.StringVar(&cfg.DatabaseURL, "d", cfg.DatabaseURL, "Урл базы данных")
 
 	flag.Parse()
 
@@ -48,8 +46,8 @@ func GetRouter(storage storage.URLStorage, urlShortener app.URLShortener, cfg Co
 	router.POST("/api/shorten", handler.PostAPIFullURL)
 	router.GET("/api/user/urls", handler.GetUserURLs)
 
-	health := handlers.Health{DatabaseURL: cfg.DatabaseURL}
-	router.GET("/ping", health.CheckDatabase)
+	//health := handlers.Health{DatabaseURL: cfg.DatabaseURL}
+	//router.GET("/ping", health.CheckDatabase)
 
 	return router
 }
