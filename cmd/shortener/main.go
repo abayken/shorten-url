@@ -8,6 +8,7 @@ import (
 	"github.com/abayken/shorten-url/internal/app/handlers"
 	"github.com/abayken/shorten-url/internal/app/storage"
 	"github.com/caarlos0/env/v6"
+	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 )
 
@@ -50,8 +51,7 @@ func main() {
 func GetRouter(storage storage.URLStorage, urlShortener app.URLShortener, cfg Config) *gin.Engine {
 	handler := handlers.URLHandler{Storage: storage, URLShortener: urlShortener, BaseURL: cfg.BaseURL}
 	router := gin.New()
-	router.Use(Compress())
-	router.Use(Unpack())
+	router.Use(gzip.Gzip(gzip.BestSpeed, gzip.WithDecompressFn(gzip.DefaultDecompressHandle)))
 	router.Use(Tokenize())
 	router.GET("/:id", handler.GetFullURL)
 	router.POST("/", handler.PostFullURL)
