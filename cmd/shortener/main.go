@@ -15,7 +15,7 @@ type Config struct {
 	ServerAddress   string `env:"SERVER_ADDRESS" envDefault:":8080"`
 	BaseURL         string `env:"BASE_URL" envDefault:"http://localhost:8080"`
 	FileStoragePath string `env:"FILE_STORAGE_PATH" envDefault:"urls.json"`
-	DatabaseURL     string `env:"DATABASE_DSN" envDefault:"postgres://abayken:password@localhost:5432/urls"`
+	DatabaseURL     string `env:"DATABASE_DSN"`
 }
 
 func main() {
@@ -33,7 +33,17 @@ func main() {
 
 	flag.Parse()
 
-	router := GetRouter(storage.DatabaseStorage{Url: cfg.DatabaseURL}, app.RealURLShortener{}, cfg)
+	var urlStorage storage.URLStorage
+
+	if cfg.DatabaseURL != "" {
+		urlStorage = storage.DatabaseStorage{Url: cfg.DatabaseURL}
+	} else if cfg.FileStoragePath != "" {
+		urlStorage = storage.FileURLStorage{Path: cfg.FileStoragePath}
+	} else {
+		urlStorage = storage.NewMapURLStorage(map[string]string{})
+	}
+
+	router := GetRouter(urlStorage, app.RealURLShortener{}, cfg)
 	router.Run(cfg.ServerAddress)
 }
 
