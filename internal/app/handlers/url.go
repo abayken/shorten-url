@@ -43,7 +43,9 @@ func (handler *URLHandler) PostFullURL(ctx *gin.Context) {
 
 	shortURLID := handler.URLShortener.ID()
 
-	handler.Storage.Save(shortURLID, url)
+	userID := ctx.GetString("token")
+
+	handler.Storage.Save(shortURLID, url, userID)
 
 	ctx.String(http.StatusCreated, handler.BaseURL+"/"+shortURLID)
 }
