@@ -34,7 +34,7 @@ func main() {
 
 	flag.Parse()
 
-	var storage = storage.DatabaseStorage{Url: cfg.DatabaseURL}
+	var storage = storage.DatabaseStorage{URL: cfg.DatabaseURL}
 	storage.InitTablesIfNeeded()
 
 	router := GetRouter(storage, app.RealURLShortener{}, cfg)

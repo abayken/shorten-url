@@ -8,11 +8,11 @@ import (
 )
 
 type DatabaseStorage struct {
-	Url string
+	URL string
 }
 
 func (storage DatabaseStorage) InitTablesIfNeeded() {
-	conn, err := pgx.Connect(context.Background(), storage.Url)
+	conn, err := pgx.Connect(context.Background(), storage.URL)
 
 	if err != nil {
 		log.Fatal(err)
@@ -30,7 +30,7 @@ func (storage DatabaseStorage) InitTablesIfNeeded() {
 }
 
 func (storage DatabaseStorage) initDB() *pgx.Conn {
-	conn, err := pgx.Connect(context.Background(), storage.Url)
+	conn, err := pgx.Connect(context.Background(), storage.URL)
 
 	if err != nil {
 		log.Fatal(err)
