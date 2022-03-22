@@ -82,3 +82,9 @@ func (storage FileURLStorage) FetchUserURLs(userID string) []UserURL {
 
 	return urls
 }
+
+func (storage FileURLStorage) BatchURLs(urls []BatchURL) error {
+	log.Fatal("Данный метод не имеет реализацию")
+
+	return nil
+}

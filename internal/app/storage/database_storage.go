@@ -77,3 +77,22 @@ func (storage DatabaseStorage) FetchUserURLs(userID string) []UserURL {
 
 	return urls
 }
+
+func (storage DatabaseStorage) BatchURLs(urls []BatchURL) error {
+	var db = storage.initDB()
+
+	rows := make([][]interface{}, 0)
+
+	for _, url := range urls {
+		row := []interface{}{url.UserID, url.ShortURLID, url.FullURL}
+		rows = append(rows, row)
+	}
+
+	_, err := db.CopyFrom(context.Background(),
+		pgx.Identifier{"url"},
+		[]string{"user_id", "short_url_id", "full_url"},
+		pgx.CopyFromRows(rows),
+	)
+
+	return err
+}

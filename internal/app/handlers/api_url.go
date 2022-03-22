@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/abayken/shorten-url/internal/app/storage"
 	"github.com/gin-gonic/gin"
 )
 
@@ -84,4 +85,80 @@ func (handler *URLHandler) GetUserURLs(ctx *gin.Context) {
 	} else {
 		ctx.Status(http.StatusNoContent)
 	}
+}
+
+func (handler *URLHandler) BatchURLS(ctx *gin.Context) {
+	body, err := ioutil.ReadAll(ctx.Request.Body)
+
+	if err != nil {
+		ctx.Status(http.StatusBadRequest)
+
+		return
+	}
+
+	userID := ctx.GetString("token")
+
+	/// Формат тело запроса
+	type URLBatchRequest struct {
+		CorrelationID string `json:"correlation_id"`
+		OriginalURL   string `json:"original_url"`
+	}
+
+	/// Формат ответа
+	type URLBatchResponse struct {
+		CorrelationID string `json:"correlation_id"`
+		ShortURL      string `json:"short_url"`
+	}
+
+	var urls []URLBatchRequest
+
+	err = json.Unmarshal(body, &urls)
+
+	if err != nil {
+		ctx.Status(http.StatusInternalServerError)
+
+		return
+	}
+
+	/// массив урлов которые добавятся в базу
+	var batchURLs []storage.BatchURL
+
+	/// массив сокращенных урлов для ответа
+	var batchURLsResponse []URLBatchResponse
+
+	for _, item := range urls {
+		shortURLID := handler.URLShortener.ID()
+
+		batchURLs = append(batchURLs,
+			storage.BatchURL{
+				UserID:     userID,
+				ShortURLID: shortURLID,
+				FullURL:    item.OriginalURL,
+			})
+
+		batchURLsResponse = append(
+			batchURLsResponse,
+			URLBatchResponse{
+				CorrelationID: item.CorrelationID,
+				ShortURL:      handler.BaseURL + "/" + shortURLID,
+			})
+	}
+
+	err = handler.Storage.BatchURLs(batchURLs)
+
+	if err != nil {
+		ctx.Status(http.StatusInternalServerError)
+
+		return
+	}
+
+	jsonResponse, err := json.Marshal(batchURLsResponse)
+
+	if err != nil {
+		ctx.Status(http.StatusInternalServerError)
+
+		return
+	}
+
+	ctx.Data(http.StatusCreated, "application/json", jsonResponse)
 }
