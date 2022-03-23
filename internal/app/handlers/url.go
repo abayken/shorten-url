@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"io/ioutil"
 	"net/http"
 
@@ -45,7 +46,17 @@ func (handler *URLHandler) PostFullURL(ctx *gin.Context) {
 
 	userID := ctx.GetString("token")
 
-	handler.Storage.Save(shortURLID, url, userID)
+	err = handler.Storage.Save(shortURLID, url, userID)
+
+	if err != nil {
+		var duplicateError *storage.DuplicateURLError
+
+		if errors.As(err, &duplicateError) {
+			ctx.String(http.StatusConflict, handler.BaseURL+"/"+duplicateError.ShortURLID)
+
+			return
+		}
+	}
 
 	ctx.String(http.StatusCreated, handler.BaseURL+"/"+shortURLID)
 }

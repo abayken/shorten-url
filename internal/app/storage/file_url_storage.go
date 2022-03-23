@@ -17,11 +17,11 @@ type FileModel struct {
 	UserID     string `json:"user_id"`
 }
 
-func (storage FileURLStorage) Save(shortURLID, fullURL, userID string) {
+func (storage FileURLStorage) Save(shortURLID, fullURL, userID string) error {
 	file, err := os.OpenFile(storage.Path, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0777)
 
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	defer file.Close()
@@ -30,13 +30,15 @@ func (storage FileURLStorage) Save(shortURLID, fullURL, userID string) {
 	bytes, err := json.Marshal(fileModel)
 
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	writer := bufio.NewWriter(file)
 	writer.Write(bytes)
 	writer.WriteByte('\n')
 	writer.Flush()
+
+	return nil
 }
 
 func (storage FileURLStorage) Get(shortURLID string) string {

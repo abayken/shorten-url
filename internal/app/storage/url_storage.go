@@ -3,7 +3,7 @@ package storage
 /// Абстракция storage-a
 /// Есть фейковая имлементация которая сохраняет в словарь
 type URLStorage interface {
-	Save(shortURLID, fullURL, userID string)
+	Save(shortURLID, fullURL, userID string) error
 	Get(shortURLID string) string
 	FetchUserURLs(userID string) []UserURL
 	BatchURLs(urls []BatchURL) error

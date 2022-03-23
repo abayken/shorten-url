@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
 
@@ -47,7 +48,27 @@ func (handler *URLHandler) PostAPIFullURL(ctx *gin.Context) {
 	shortURLID := handler.URLShortener.ID()
 	userID := ctx.GetString("token")
 
-	handler.Storage.Save(shortURLID, model.URL, userID)
+	err = handler.Storage.Save(shortURLID, model.URL, userID)
+
+	if err != nil {
+		var duplicateError *storage.DuplicateURLError
+
+		if errors.As(err, &duplicateError) {
+			responseModel := PostAPIURLResponse{Result: handler.BaseURL + "/" + duplicateError.ShortURLID}
+
+			jsonResponse, err := json.Marshal(responseModel)
+
+			if err != nil {
+				ctx.Status(http.StatusInternalServerError)
+
+				return
+			}
+
+			ctx.String(http.StatusConflict, string(jsonResponse))
+
+			return
+		}
+	}
 
 	responseModel := PostAPIURLResponse{Result: handler.BaseURL + "/" + shortURLID}
 

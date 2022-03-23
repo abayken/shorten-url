@@ -11,8 +11,10 @@ func NewMapURLStorage(urls map[string]string) *MapURLStorage {
 	return &MapURLStorage{urlsMap: urls}
 }
 
-func (storage MapURLStorage) Save(shortURLID, fullURL, userID string) {
+func (storage MapURLStorage) Save(shortURLID, fullURL, userID string) error {
 	storage.urlsMap[shortURLID] = fullURL
+
+	return nil
 }
 
 func (storage MapURLStorage) Get(shortURLID string) string {
