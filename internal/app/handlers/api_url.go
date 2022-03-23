@@ -64,6 +64,7 @@ func (handler *URLHandler) PostAPIFullURL(ctx *gin.Context) {
 				return
 			}
 
+			ctx.Writer.Header().Set("Content-Type", "application/json")
 			ctx.String(http.StatusConflict, string(jsonResponse))
 
 			return
