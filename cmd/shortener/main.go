@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/caarlos0/env/v6"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v4"
 )
 
 type Config struct {
@@ -34,11 +36,23 @@ func main() {
 
 	flag.Parse()
 
-	var storage = storage.DatabaseStorage{URL: cfg.DatabaseURL}
-	storage.InitTablesIfNeeded()
+	var storage = getDatabaseStorage(cfg.DatabaseURL)
 
 	router := GetRouter(storage, app.RealURLShortener{}, cfg)
 	router.Run(cfg.ServerAddress)
+}
+
+func getDatabaseStorage(url string) storage.DatabaseStorage {
+	conn, err := pgx.Connect(context.Background(), url)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var storage = storage.DatabaseStorage{DB: conn}
+	storage.InitTablesIfNeeded()
+
+	return storage
 }
 
 func GetRouter(storage storage.URLStorage, urlShortener app.URLShortener, cfg Config) *gin.Engine {
