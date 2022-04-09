@@ -4,9 +4,10 @@ package storage
 /// Есть фейковая имлементация которая сохраняет в словарь
 type URLStorage interface {
 	Save(shortURLID, fullURL, userID string) error
-	Get(shortURLID string) string
+	Get(shortURLID string) (string, error)
 	FetchUserURLs(userID string) []UserURL
 	BatchURLs(urls []BatchURL) error
+	DeleteURLs(urlIDs []string, userID string) error
 }
 
 /// Урл определенного юзера
