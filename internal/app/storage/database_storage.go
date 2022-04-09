@@ -92,7 +92,7 @@ func (storage DatabaseStorage) Get(shortURLID string) (string, error) {
 }
 
 func (storage DatabaseStorage) FetchUserURLs(userID string) []UserURL {
-	rows, err := storage.DB.Query(context.Background(), "select * from url where user_id = $1", userID)
+	rows, err := storage.DB.Query(context.Background(), "select short_url_id, full_url from url where user_id = $1", userID)
 
 	if err != nil {
 		log.Fatal(err)
@@ -103,8 +103,7 @@ func (storage DatabaseStorage) FetchUserURLs(userID string) []UserURL {
 	for rows.Next() {
 		var userURL UserURL
 
-		var userID string
-		err = rows.Scan(&userID, &userURL.Short, &userURL.Original)
+		err = rows.Scan(&userURL.Short, &userURL.Original)
 
 		if err == nil {
 			urls = append(urls, userURL)
