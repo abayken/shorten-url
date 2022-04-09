@@ -41,7 +41,7 @@ func (storage FileURLStorage) Save(shortURLID, fullURL, userID string) error {
 	return nil
 }
 
-func (storage FileURLStorage) Get(shortURLID string) string {
+func (storage FileURLStorage) Get(shortURLID string) (string, error) {
 	file, err := os.OpenFile(storage.Path, os.O_RDONLY|os.O_CREATE, 0777)
 
 	if err != nil {
@@ -55,11 +55,11 @@ func (storage FileURLStorage) Get(shortURLID string) string {
 		var item FileModel
 		err = json.Unmarshal(bytes, &item)
 		if err == nil && item.ShortURLID == shortURLID {
-			return item.FullURL
+			return item.FullURL, nil
 		}
 	}
 
-	return ""
+	return "", nil
 }
 
 func (storage FileURLStorage) FetchUserURLs(userID string) []UserURL {
@@ -88,5 +88,9 @@ func (storage FileURLStorage) FetchUserURLs(userID string) []UserURL {
 func (storage FileURLStorage) BatchURLs(urls []BatchURL) error {
 	log.Fatal("Данный метод не имеет реализацию")
 
+	return nil
+}
+
+func (storage FileURLStorage) DeleteURLs(urlIDs []string, userID string) error {
 	return nil
 }
