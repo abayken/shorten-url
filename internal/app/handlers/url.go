@@ -19,7 +19,17 @@ type URLHandler struct {
 func (handler *URLHandler) GetFullURL(ctx *gin.Context) {
 	shortURLID := ctx.Param("id")
 
-	fullURL := handler.Storage.Get(shortURLID)
+	fullURL, err := handler.Storage.Get(shortURLID)
+
+	if err != nil {
+		var deletedURLError *storage.DeletedURLError
+
+		if errors.As(err, &deletedURLError) {
+			ctx.String(http.StatusGone, "")
+
+			return
+		}
+	}
 
 	if fullURL != "" {
 		ctx.Header("Location", fullURL)

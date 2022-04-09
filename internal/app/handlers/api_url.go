@@ -184,3 +184,27 @@ func (handler *URLHandler) BatchURLS(ctx *gin.Context) {
 
 	ctx.Data(http.StatusCreated, "application/json", jsonResponse)
 }
+
+func (handler *URLHandler) DeleteUserURLs(ctx *gin.Context) {
+	body, err := ioutil.ReadAll(ctx.Request.Body)
+
+	if err != nil {
+		return
+	}
+
+	var IDs []string
+
+	userID := ctx.GetString("token")
+
+	err = json.Unmarshal(body, &IDs)
+
+	if err != nil {
+		return
+	}
+
+	go func() {
+		handler.Storage.DeleteURLs(IDs, userID)
+	}()
+
+	ctx.String(http.StatusAccepted, "")
+}

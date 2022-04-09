@@ -17,8 +17,8 @@ func (storage MapURLStorage) Save(shortURLID, fullURL, userID string) error {
 	return nil
 }
 
-func (storage MapURLStorage) Get(shortURLID string) string {
-	return storage.urlsMap[shortURLID]
+func (storage MapURLStorage) Get(shortURLID string) (string, error) {
+	return storage.urlsMap[shortURLID], nil
 }
 
 func (storage MapURLStorage) FetchUserURLs(userID string) []UserURL {
@@ -28,5 +28,9 @@ func (storage MapURLStorage) FetchUserURLs(userID string) []UserURL {
 func (storage MapURLStorage) BatchURLs(urls []BatchURL) error {
 	log.Fatal("Данный метод не имеет реализацию")
 
+	return nil
+}
+
+func (storage MapURLStorage) DeleteURLs(urlIDs []string, userID string) error {
 	return nil
 }

@@ -65,6 +65,7 @@ func GetRouter(storage storage.URLStorage, urlShortener app.URLShortener, cfg Co
 	router.POST("/api/shorten", handler.PostAPIFullURL)
 	router.POST("/api/shorten/batch", handler.BatchURLS)
 	router.GET("/api/user/urls", handler.GetUserURLs)
+	router.DELETE("/api/user/urls", handler.DeleteUserURLs)
 
 	health := handlers.Health{DatabaseURL: cfg.DatabaseURL}
 	router.GET("/ping", health.CheckDatabase)
